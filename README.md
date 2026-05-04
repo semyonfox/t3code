@@ -1,3 +1,9 @@
+> **Fork** — adds LaTeX/math rendering to chat messages via [KaTeX](https://katex.org/).
+> Original project: [pingdotgg/t3code](https://github.com/pingdotgg/t3code) by the Ping team.
+> Download builds from [Releases](../../releases) or build from source with `bun install && bun run dist:desktop:linux`.
+
+---
+
 # T3 Code
 
 T3 Code is a minimal web GUI for coding agents (currently Codex, Claude, and OpenCode, more coming soon).

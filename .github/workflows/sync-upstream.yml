@@ -1,0 +1,56 @@
+name: Sync upstream
+
+on:
+  schedule:
+    - cron: '0 2 * * *'   # 02:00 UTC — after end of US business hours (all timezones)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch upstream
+        run: |
+          git remote add upstream https://github.com/pingdotgg/t3code.git
+          git fetch upstream main --tags
+
+      - name: Check for new upstream release
+        id: check
+        shell: bash
+        run: |
+          upstream_tag=$(git tag -l --sort=-version:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
+          echo "upstream_tag=$upstream_tag" >> "$GITHUB_OUTPUT"
+          fork_tag="${upstream_tag}-math.1"
+          if git ls-remote --tags origin "refs/tags/${fork_tag}" | grep -q "$fork_tag"; then
+            echo "already_synced=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "already_synced=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Rebase fork onto upstream
+        if: steps.check.outputs.already_synced == 'false'
+        run: git rebase upstream/main
+
+      - name: Push updated main to fork
+        if: steps.check.outputs.already_synced == 'false'
+        run: git push origin main --force-with-lease
+
+      - name: Tag and trigger release
+        if: steps.check.outputs.already_synced == 'false'
+        run: |
+          fork_tag="${{ steps.check.outputs.upstream_tag }}-math.1"
+          git tag "$fork_tag"
+          git push origin "$fork_tag"

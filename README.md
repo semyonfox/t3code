@@ -1,5 +1,7 @@
 # T3 Code
 
+> **Fork** - local KaTeX/LaTeX rendering experiment. GitHub Actions are intentionally disabled on this fork; rebuild locally if the fork is needed again.
+
 T3 Code is a minimal web GUI for coding agents (currently Codex, Claude, and OpenCode, more coming soon).
 
 ## Installation
